@@ -1,0 +1,9 @@
+DROP INDEX IF EXISTS idx_tasks_project_status;
+DROP INDEX IF EXISTS idx_tasks_project_assignee;
+DROP INDEX IF EXISTS idx_tasks_project_creator;
+DROP INDEX IF EXISTS idx_tasks_due_date;
+DROP INDEX IF EXISTS idx_projects_owner;
+DROP INDEX IF EXISTS idx_refresh_tokens_hash;
+DROP INDEX IF EXISTS idx_refresh_tokens_user;
+DROP INDEX IF EXISTS idx_refresh_tokens_expiry;
+DROP INDEX IF EXISTS idx_webhook_subs_user;

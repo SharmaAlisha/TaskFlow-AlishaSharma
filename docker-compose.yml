@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-taskflow}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-taskflow_secret}
+      POSTGRES_DB: ${DB_NAME:-taskflow}
+    ports:
+      - "${DB_HOST_PORT:-5434}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-taskflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

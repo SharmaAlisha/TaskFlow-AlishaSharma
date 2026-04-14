@@ -1,0 +1,356 @@
+{
+	"info": {
+		"name": "TaskFlow API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"description": "Complete API collection for TaskFlow task management system."
+	},
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost:8080" },
+		{ "key": "access_token", "value": "" },
+		{ "key": "project_id", "value": "" },
+		{ "key": "task_id", "value": "" },
+		{ "key": "webhook_id", "value": "" }
+	],
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/health/"
+					}
+				},
+				{
+					"name": "Readiness Check",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/health/ready"
+					}
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('access_token', json.access_token);",
+									"    pm.test('Has access token', function() {",
+									"        pm.expect(json.access_token).to.not.be.empty;",
+									"    });",
+									"    pm.test('Has user object', function() {",
+									"        pm.expect(json.user).to.have.property('id');",
+									"        pm.expect(json.user).to.have.property('email');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/auth/register",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test-postman@example.com\",\n    \"password\": \"password123\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('access_token', json.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/auth/login",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('access_token', json.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/auth/refresh",
+						"description": "Uses refresh_token cookie (auto-sent by Postman)"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/auth/logout"
+					}
+				}
+			]
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "List Projects",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/api/v1/projects/?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "projects", ""],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" }
+							]
+						},
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }]
+					}
+				},
+				{
+					"name": "Create Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('project_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/projects/",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "x-access-token", "value": "{{access_token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"My New Project\",\n    \"description\": \"A test project created via Postman\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Project by ID",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/v1/projects/{{project_id}}",
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }]
+					}
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/api/v1/projects/{{project_id}}",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "x-access-token", "value": "{{access_token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Project Name\",\n    \"description\": \"Updated description\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Project Stats",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/v1/projects/{{project_id}}/stats",
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }]
+					}
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/v1/projects/{{project_id}}",
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }]
+					}
+				}
+			]
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "List Tasks",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/api/v1/projects/{{project_id}}/tasks?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "projects", "{{project_id}}", "tasks"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "20" },
+								{ "key": "status", "value": "", "disabled": true },
+								{ "key": "assignee", "value": "", "disabled": true }
+							]
+						},
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }]
+					}
+				},
+				{
+					"name": "Create Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('task_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/projects/{{project_id}}/tasks",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "x-access-token", "value": "{{access_token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Design homepage\",\n    \"description\": \"Create the homepage mockup\",\n    \"priority\": \"high\",\n    \"due_date\": \"2026-05-01\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Task",
+					"request": {
+						"method": "PATCH",
+						"url": "{{base_url}}/api/v1/tasks/{{task_id}}",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "x-access-token", "value": "{{access_token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"in_progress\",\n    \"version\": 1\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/v1/tasks/{{task_id}}",
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }]
+					}
+				}
+			]
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "Create Webhook Subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('webhook_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/webhooks/",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "x-access-token", "value": "{{access_token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"url\": \"https://webhook.site/your-unique-url\",\n    \"secret\": \"my-super-secret-key-min16\",\n    \"event_types\": [\"task.created\", \"task.updated\"],\n    \"project_ids\": [\"{{project_id}}\"]\n}"
+						}
+					}
+				},
+				{
+					"name": "List Webhooks",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/v1/webhooks/",
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }]
+					}
+				},
+				{
+					"name": "Delete Webhook",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/v1/webhooks/{{webhook_id}}",
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }]
+					}
+				}
+			]
+		},
+		{
+			"name": "SSE",
+			"item": [
+				{
+					"name": "SSE Events (use curl)",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/v1/sse/events?projects={{project_id}}",
+						"header": [{ "key": "x-access-token", "value": "{{access_token}}" }],
+						"description": "SSE is a long-lived connection. Postman cannot display SSE streams properly.\n\nUse curl instead:\n```\ncurl -N -H \"x-access-token: YOUR_TOKEN\" \"http://localhost:8080/api/v1/sse/events?projects=PROJECT_ID\"\n```"
+					}
+				}
+			]
+		}
+	]
+}
