@@ -61,10 +61,6 @@ Then use **`x-access-token: <JWT>`** on all protected routes (or `Authorization:
 - **SSE**: `curl -sSN --max-time 5 -H "x-access-token: $TOKEN" "http://localhost:8080/api/v1/sse/events?projects=<project_uuid>"` — should print `:connected` immediately, then events when tasks change.
 - **Webhooks**: `POST /api/v1/webhooks/` with `url`, `secret`, `event_types`, `project_ids`; duplicate same `user_id` + `url` → **409**.
 
-### 5. Code review call (what they will ask)
-
-Be ready to explain: **auth** (JWT + refresh cookie + rotation), **why `due_date::text` in SQL** (pgx scanning `DATE` into `*string`), **optimistic locking**, **SSE broker vs webhooks**, **rate limit keys**, **graceful shutdown order**, and **tradeoffs** in "What I'd Do With More Time".
-
 ### Note on rate limits while testing
 
 `POST /api/v1/auth/login` and `/register` are rate-limited per IP. If you hit **`429 too many requests`**, wait for `Retry-After`, **register a different email**, or restart the API container (`docker compose restart api`) to reset the in-memory limiter during local review.
